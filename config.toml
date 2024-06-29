@@ -22,7 +22,7 @@ capitalizeListTitles = false
     startLevel = 2
 
   [markup.highlight]
-    style = 'bw'
+    style = 'xcode-dark'
     tabWidth = 2
 
   [markup.goldmark]

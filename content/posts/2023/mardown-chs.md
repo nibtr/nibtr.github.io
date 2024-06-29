@@ -1,6 +1,6 @@
 +++
   title = "Markdown Cheatsheet"
-  date = 2023-11-18T16:23:18+07:00
+  date = 2023-10-18T16:23:18+07:00
   draft = false 
   [params]
     toc = false

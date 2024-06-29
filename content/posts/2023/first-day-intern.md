@@ -1,7 +1,7 @@
 +++
   title = "My first day as an intern"
   date = 2023-08-18T16:15:01+07:00
-  draft = false
+  draft = true
   [params]
     toc = true
 +++
