@@ -1,0 +1,19 @@
+{{ partial "header.html" . }}
+
+<div class="article-meta">
+
+<h1 class="title">{{ .Title | markdownify }}</h1>
+{{ if (gt .Params.date 0) }}<h2 class="date">{{ .Date.Format "2006/01/02" }}</h2>{{ end }}
+
+{{ if .Params.toc }}
+Table of contents
+{{ .TableOfContents }}
+{{ end }}
+
+</div>
+
+<main class="content">
+{{ .Content }}
+</main>
+
+{{ partial "footer.html" . }}

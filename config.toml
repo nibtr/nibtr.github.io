@@ -1,0 +1,31 @@
+baseURL = 'https://jarng.github.io/'
+languageCode = 'en-us'
+title = "jarng"
+tableOfContents = true
+capitalizeListTitles = false
+
+[menu]
+  [[menu.main]]
+    name = "home"
+    url = ""
+    weight = 1
+    
+  [[menu.main]]
+    name = "posts"
+    url = "/posts"
+    weight = 2
+
+[markup]
+  [markup.tableOfContents]
+    endLevel = 3
+    ordered = false
+    startLevel = 2
+
+  [markup.highlight]
+    style = 'bw'
+    tabWidth = 2
+
+  [markup.goldmark]
+
+[params]
+  footer = "&copy; [Hieu Nguyen](https://github.com/jarng) 2023 -- {Year}"

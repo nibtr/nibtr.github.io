@@ -1,0 +1,79 @@
+body {
+  max-width: 800px;
+  margin: auto;
+  padding: 1em;
+  line-height: 1.5;
+  padding-left: calc(100vw - 100%);
+}
+
+/* header and footer areas */
+.menu {
+  padding: 0;
+  display: flex;
+  gap: 0.5em;
+}
+.menu li {
+  display: inline-block;
+}
+
+.article-meta {
+  margin: 0;
+  margin-bottom: 2.5em;
+}
+.article-meta .title {
+  margin: 0;
+}
+.article-meta .date {
+  font-size: 0.9em;
+  margin: 0;
+  font-weight: 400;
+  margin-bottom: 1em;
+}
+
+footer a { text-decoration: none; }
+
+.content {
+  padding-bottom: 1.5em;
+}
+
+/* code */
+pre {
+  border: 1px solid #ddd;
+  box-shadow: 5px 5px 5px #eee;
+  padding: 1em;
+  overflow-x: auto;
+}
+code {
+  background: #f9f9f9;
+}
+pre code {
+  background: none;
+}
+
+/* misc elements */
+img, iframe, video {
+  max-width: 100%;
+}
+main {
+  hyphens: auto;
+}
+blockquote {
+  background: #f9f9f9;
+  border-left: 5px solid #ccc;
+  padding: 3px 1em 3px;
+}
+
+table {
+  margin: auto;
+  border-top: 1px solid #666;
+  border-bottom: 1px solid #666;
+}
+table thead th {
+  border-bottom: 1px solid #ddd;
+}
+th, td {
+  padding: 5px;
+}
+thead, tfoot, tr:nth-child(even) {
+  background: #eee;
+}
