@@ -1,6 +1,4 @@
-# jarng.github.io
-
-My personal website (mainly for blogs).
+My personal website,
 
 ## License
 
