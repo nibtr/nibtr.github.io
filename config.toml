@@ -1,6 +1,6 @@
-baseURL = 'https://jarng.github.io/'
+baseURL = 'https://nibtr.github.io/'
 languageCode = 'en-us'
-title = "jarng"
+title = "nibtr"
 tableOfContents = true
 capitalizeListTitles = false
 
@@ -28,4 +28,4 @@ capitalizeListTitles = false
   [markup.goldmark]
 
 [params]
-  footer = "&copy; [Hieu Nguyen](https://github.com/jarng) 2023 -- {Year}"
+  footer = "&copy; [Hieu Nguyen](https://github.com/nibtr) 2023 -- {Year}"
