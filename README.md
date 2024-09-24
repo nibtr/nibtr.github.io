@@ -1,4 +1,6 @@
-My personal website.
+# nibtr.github.io
+
+It's my personal website.
 
 ## License
 
