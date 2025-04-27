@@ -13,10 +13,10 @@ I'm Hieu.
 
 ## what i do
 
-- I'm a Computer Science graduate from Ho Chi Minh City University of
-Science.
 - I work full-time as a full-stack developer for a small startup
-company. In my spare time, I like to do recreational programming.
+company.
+- In my spare time, I like to do recreational programming and language
+learning, currently focusing on Japanese.
 
 ## link
 
