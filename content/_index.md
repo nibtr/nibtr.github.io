@@ -9,23 +9,16 @@ draft = false
 I'm Hieu.
 
 - Interested in backend development and low-level programming.
-- Daily drivers: Debian (laptop), MacOS (work), Windows sucks.
-- Favorite languages: I hate all equally.
+- Daily drivers: Void (desktop/laptop), MacOS (work).
 
 ## what i do
 
-- I'm a Computer Science student at Ho Chi Minh City University of Science (just finished my final year project).
-- I work full-time as a full-stack developer for a small startup company. In my spare time, I like to do recreational programming, with a goal of learning more stuff along the way.
-
-## about this site
-
-It's my personal website.
-
-- I write and share my thoughts on various topics.
-- I write about programming and sometimes about random things.
-- I write in English, sometimes in Vietnamese (for local audience).
+- I'm a Computer Science graduate from Ho Chi Minh City University of
+Science.
+- I work full-time as a full-stack developer for a small startup
+company. In my spare time, I like to do recreational programming.
 
 ## link
 
-- Email: [nhthieu16@proton.me](mailto:nhthieu16@proton.me)
+- Email: [nhthieu0106@gmail.com](mailto:nhthieu0106@gmail.com)
 - Github: [@nibtr](https://github.com/nibtr)
