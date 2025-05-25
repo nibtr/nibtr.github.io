@@ -16,7 +16,7 @@ I'm Hieu.
 - I work full-time as a full-stack developer for a small startup
 company.
 - In my spare time, I like to do recreational programming and language
-learning, currently focusing on Japanese.
+learning.
 
 ## link
 
