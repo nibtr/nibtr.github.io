@@ -6,19 +6,19 @@ draft = false
 
 ## Hieu Nguyen.
 
-I'm a full-stack developer working at a small startup. Outside of work,
-I'm interested in systems programming and spend my spare time doing
-recreational projects and reading books on the subject, trying to
-dig deeper into how things work under the hood.
+I'm a full-stack developer currently working for a small
+[startup](https://www.devsamurai.com/en/). In my free time, I like
+exploring systems programming - building side projects and reading
+books on the subject to better understand how things work under the
+hood.
 
-I also enjoy learning both programming and natural languages - it's a great
-way to explore how different systems and paradigms work and how they
-shape the way we think and solve problems.
+I also enjoy learning both programming and natural languages - it's a
+fun way to stay curious and explore new perspectives.
 
 ## daily drivers
 
 - ed: neovim
-- terminal: alacritty + tmux
+- term: alacritty + tmux
 - os: void (desktop), macos (work).
 
 ## contact 

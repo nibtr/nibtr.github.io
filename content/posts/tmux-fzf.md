@@ -125,7 +125,7 @@ tmux switch-client -t $selected_name
 ```
 
 Congratulations, now you can use this script to navigate folder and open
-session even faster!. Simply run `tms` in your terminal or press
+session even faster! Simply run `tms` in your terminal or press
 `prefix + f` if you're already in a tmux session.
 
 ## My configs
