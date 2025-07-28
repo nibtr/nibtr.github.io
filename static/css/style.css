@@ -11,6 +11,7 @@ body {
   padding: 0;
   display: flex;
   gap: 0.5em;
+  margin-bottom: 3em;
 }
 .menu li {
   display: inline-block;
@@ -39,15 +40,27 @@ footer a { text-decoration: none; }
 /* code */
 pre {
   border: 1px solid #ddd;
-  box-shadow: 5px 5px 5px #eee;
+  /* box-shadow: 5px 5px 5px #eee; */
   padding: 1em;
   overflow-x: auto;
 }
 code {
+  direction: ltr;
+  margin: auto 2px;
+  padding: 0.2em 0.4em;
+  font-size: 80%;
+  line-height: 1.5;
   background: #f9f9f9;
+  border-radius: 6px;
+  font-family: menlo, Consolas, ui-monospace, monospace;
 }
 pre code {
+  display: block;
+  margin: auto 0;
   background: none;
+  border-radius: var(--radius);
+  overflow-x: auto;
+  word-break: break-all;
 }
 
 /* misc elements */
@@ -76,4 +89,17 @@ th, td {
 }
 thead, tfoot, tr:nth-child(even) {
   background: #eee;
+}
+
+a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 2px;
+}
+a code {
+  margin: auto 0;
+}
+a:hover code {
+  text-decoration: underline;
 }

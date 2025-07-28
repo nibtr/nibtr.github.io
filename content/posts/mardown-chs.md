@@ -1,7 +1,7 @@
 +++
-  title = "Markdown Cheatsheet"
+  title = "Markdown Test"
   date = 2023-10-18T16:23:18+07:00
-  draft = true 
+  draft = false 
   [params]
     toc = false
 +++
@@ -137,17 +137,27 @@ Here's a simple footnote,[^1] and here's a longer one.[^bignote]
 
 or span multiple lines
 
-```js
-const foo = "bar";
-console.log(foo);
+```rust
+fn main() {
+    println!("Hello, world!");
+}
+
+fn foo(x: i32) -> i32 {
+    x + 1
+}
 ```
 ````
 
 `Inline code`
 
-```js
-const foo = "bar";
-console.log(foo);
+```rust
+fn main() {
+    println!("Hello, world!");
+}
+
+fn foo(x: i32) -> i32 {
+    x + 1
+}
 ```
 
 For language specific syntax highlighting, specify the language at the beginning of the code block.

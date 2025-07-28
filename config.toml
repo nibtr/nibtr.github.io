@@ -9,7 +9,7 @@ capitalizeListTitles = false
     name = "home"
     url = ""
     weight = 1
-    
+
   [[menu.main]]
     name = "posts"
     url = "/posts"
@@ -22,7 +22,7 @@ capitalizeListTitles = false
     startLevel = 2
 
   [markup.highlight]
-    style = 'xcode-dark'
+    style = 'gruvbox'
     tabWidth = 2
 
   [markup.goldmark]

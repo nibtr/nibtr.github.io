@@ -1,5 +1,5 @@
 +++
-  title = "printf(\"Hello, friend!\");"
+  title = "println!(\"Hello, friend!\");"
   date = 2023-05-16T20:23:18+07:00
   draft = false
   [params]

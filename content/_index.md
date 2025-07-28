@@ -4,21 +4,23 @@ date = 2024-06-29T16:04:24+07:00
 draft = false 
 +++
 
-## about me
+## Hieu Nguyen.
 
-I'm Hieu.
+I'm a full-stack developer working at a small startup. Outside of work,
+I'm interested in systems programming and spend my spare time doing
+recreational projects and reading books on the subject, trying to
+dig deeper into how things work under the hood.
 
-- Interested in backend development and low-level programming.
-- Daily drivers: Void (desktop/laptop), MacOS (work).
+I also enjoy learning both programming and natural languages - it's a great
+way to explore how different systems and paradigms work and how they
+shape the way we think and solve problems.
 
-## what i do
+## daily drivers
 
-- I work full-time as a full-stack developer for a small startup
-company.
-- In my spare time, I like to do recreational programming and language
-learning.
+- ed: neovim
+- terminal: alacritty + tmux
+- os: void (desktop), macos (work).
 
-## link
+## contact 
 
-- Email: [nhthieu0106@gmail.com](mailto:nhthieu0106@gmail.com)
-- Github: [@nibtr](https://github.com/nibtr)
+[email](mailto:nhthieu0106@gmail.com) [github](https://github.com/nibtr)
