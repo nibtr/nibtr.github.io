@@ -1,6 +1,6 @@
 # nibtr.github.io
 
-It's my personal website.
+It's my personal website, built with [Astro](https://astro.build).
 
 ## License
 
