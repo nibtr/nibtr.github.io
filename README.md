@@ -2,6 +2,13 @@
 
 It's my personal website, built with [Astro](https://astro.build).
 
+The theme is a mix of the following:
+
+- https://github.com/jktrn/enscribe.dev
+- https://github.com/jktrn/astro-erudite
+- https://github.com/trevortylerlee/astro-micro
+- https://github.com/the3ash/astro-chiri
+
 ## License
 
 Copyright (c) 2024 Hieu Nguyen Ho Trung
