@@ -2,8 +2,6 @@
   title = "My first day as an intern"
   date = 2023-08-18T16:15:01+07:00
   draft = true
-  [params]
-    toc = true
 +++
 
 August 14th, 2023, the day is finally here, first day being an intern. I got super nervous the night before, to the point where I literally couldn't think of anything else. But in the end, it didn't turn out to be as bad as I thought.
@@ -30,7 +28,7 @@ I then met with the other interns, 2 more to be exact and we were told to be wor
 
 Then came a special "gift". The company provided us each with a brand new Macbook Air M1 2020 to work with. I was like "Dude, I'm getting paid and a Macbook?".
 
-![Macbook](../../assets/intern/macbook.jpg)
+<!-- ![Macbook](../../assets/intern/macbook.jpg) -->
 
 I was a bit surprised since I didn't think that they would give us a anything let alone a laptop from an overly expensive brand. I know it's not the greatest one out there (and I'm not a fan of Apple), but I'm not complaining on free stuff lol. And by the way, as you can see on the picture, I do bring my [waifu](https://bocchi-the-rock.fandom.com/wiki/Ryo_Yamada) with me to the office.
 

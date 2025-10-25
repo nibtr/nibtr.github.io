@@ -12,6 +12,7 @@
     "@astrojs/sitemap": "^3.6.0",
     "@tailwindcss/vite": "^4.1.15",
     "astro": "^5.14.8",
+    "astro-pagefind": "^1.8.5",
     "clsx": "^2.1.1",
     "tailwind-merge": "^3.3.1",
     "tailwindcss": "^4.1.15"

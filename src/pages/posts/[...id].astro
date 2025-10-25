@@ -1,0 +1,83 @@
+---
+import Layout from "@layouts/Layout.astro"
+import { getAllPostsAndSubposts, getCombinedReadingTime, getPostReadingTime, getSubpostCount, hasSubposts, isSubpost } from "@lib/data-utils"
+import { formatDate } from "@lib/utils";
+import type { CollectionEntry } from "astro:content";
+import { render } from "astro:content";
+
+interface Props {
+  post: CollectionEntry<"posts">;
+}
+
+export async function getStaticPaths() {
+  const posts = await getAllPostsAndSubposts()
+  return posts.map((post) => ({
+    params: { id: post.id },
+    props: post,
+  }))
+}
+
+const post = Astro.props;
+const currentPostId = Astro.params.id
+
+const isCurrentSubpost = isSubpost(currentPostId)
+const hasChildPosts = await hasSubposts(currentPostId)
+const subpostCount = !isCurrentSubpost
+  ? await getSubpostCount(currentPostId)
+  : 0;
+const postReadingTime = await getPostReadingTime(currentPostId)
+const combinedReadingTime =
+  hasChildPosts && !isCurrentSubpost
+    ? await getCombinedReadingTime(currentPostId)
+    : null
+
+const { Content, headings } = await render(post);
+---
+
+<Layout title={post.data.title}>
+  <section class="col-start-2 flex flex-col gap-y-6 text-center">
+    <div class="flex flex-col">
+      <h1
+        class="mb-2 scroll-mt-31 text-3xl leading-tight font-medium sm:text-4xl"
+        id="post-title"
+      >
+        {post.data.title}
+      </h1>
+    </div>
+
+    <div
+      class="text-muted-foreground divide-border mb-4 flex flex-col items-center justify-center divide-y text-xs sm:flex-row sm:flex-wrap sm:divide-x sm:divide-y-0 sm:text-sm"
+    >
+      <div
+        class="flex w-full items-center justify-center gap-2 py-2 sm:w-fit sm:px-2 sm:py-0 first:sm:pl-0 last:sm:pr-0"
+      >
+        <span>{formatDate(post.data.date)}</span>
+      </div>
+      <div
+        class="flex w-full items-center justify-center gap-2 py-2 sm:w-fit sm:px-2 sm:py-0 first:sm:pl-0 last:sm:pr-0"
+      >
+        <span>
+          {postReadingTime}
+          {
+            combinedReadingTime &&
+              combinedReadingTime !== postReadingTime && (
+                <span class="text-muted-foreground">
+                  {' '}
+                  ({combinedReadingTime} total)
+                </span>
+              )
+          }
+        </span>
+      </div>
+
+      {
+        subpostCount > 0 && (
+          <div class="flex w-full items-center justify-center gap-1 py-2 sm:w-fit sm:px-2 sm:py-0 first:sm:pl-0 last:sm:pr-0">
+            <Icon name="lucide:file-text" class="size-3" />
+            {subpostCount} subpost{subpostCount === 1 ? '' : 's'}
+          </div>
+        )
+      }
+    </div>
+  </section>
+</Layout>

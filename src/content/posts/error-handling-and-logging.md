@@ -2,8 +2,6 @@
 title = 'Error handling and logging in Express'
 date = 2025-07-24T10:09:21+07:00
 draft = false
-[params]
-  toc = true
 +++
 
 Error handling and logging is an essential part of any backend

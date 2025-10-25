@@ -2,6 +2,18 @@
 import {SITE} from "@consts"
 import { ClientRouter } from "astro:transitions";
 
+interface Props {
+  title?: string
+  description?: string
+  noindex?: boolean
+}
+
+const {
+  title = SITE.title,
+  description = SITE.description,
+  noindex = false,
+} = Astro.props
+
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 ---
 
@@ -16,24 +28,22 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔬</text></svg>"
   />
   <meta name="generator" content={Astro.generator} />
-
-
-  <!-- Canonical URL -->
   <link rel="canonical" href={canonicalURL} />
+  {noindex && <meta name="robots" content="noindex, nofollow" />}
 
-  <!-- Primary Meta Tags -->
-  <title>{SITE.title}</title>
+  <!-- primary meta tags-->
+  <title>{`${title}`}</title>
   <meta name="title" content={SITE.title} />
-  <meta name="description" content={SITE.description} />
+  <meta name="description" content={description} />
 
-  <!-- Open Graph / Facebook -->
+  <meta property="og:title" content={SITE.title} />
   <meta property="og:type" content="website" />
   <meta property="og:url" content={Astro.url} />
-  <meta property="og:title" content={SITE.title} />
-  <meta property="og:description" content={SITE.description} />
+  <meta property="og:description" content={description} />
+  <meta property="og:locale" content={SITE.locale} />
+  <meta property="og:site_name" content={SITE.title} />
   <!-- <meta property="og:image" content={new URL(SITE.image, Astro.url)} /> -->
 
-  <!-- Twitter -->
   <meta property="twitter:card" content="summary_large_image" />
   <meta property="twitter:url" content={Astro.url} />
   <meta property="twitter:title" content={SITE.title} />

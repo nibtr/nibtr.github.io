@@ -7,13 +7,16 @@ import '@/styles/global.css'
 import Header from '@/components/Header.astro'
 import { SITE } from '@consts';
 import Head from '@components/Head.astro';
-// import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils'
+import PageFind from "@components/PageFind.astro";
 
 interface Props {
   class?: string
+  title: string,
+  description?: string
 }
 
-const { class: className } = Astro.props
+const { class: className, title, description } = Astro.props
 ---
 
 <!doctype html>
@@ -21,9 +24,7 @@ const { class: className } = Astro.props
   class="bg-background text-foreground scheme-light-dark"
   lang={SITE.locale}
 >
-  <Head>
-    <slot name="head" />
-  </Head>
+  <Head title={title} description={description} />
   <body class="flex h-fit min-h-screen flex-col gap-y-6 font-sans">
     <header
       class="bg-background/50 sticky top-0 z-50 divide-y backdrop-blur-sm xl:divide-none"
@@ -32,11 +33,10 @@ const { class: className } = Astro.props
       <slot name="subposts-navigation" />
       <slot name="table-of-contents" />
     </header>
-    <main
-      class="w-full mx-auto flex grow flex-col gap-y-6 px-4"
-    >
+    <main class={cn('w-full mx-auto flex grow flex-col gap-y-6 px-4', className)}>
       <slot />
     </main>
     <!-- <Footer /> -->
+    <PageFind />
   </body>
 </html>
