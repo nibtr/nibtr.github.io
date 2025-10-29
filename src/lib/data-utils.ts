@@ -10,7 +10,7 @@ export async function getAllPosts(): Promise<CollectionEntry<"posts">[]> {
 
 export async function getAllProjects(): Promise<CollectionEntry<"projects">[]> {
   const projects = await getCollection("projects")
-  return projects 
+  return projects
     .sort((a, b) => b.data.publishedDate.valueOf() - a.data.publishedDate.valueOf())
 }
 

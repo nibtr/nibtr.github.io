@@ -3,25 +3,13 @@
 // import Breadcrumbs from '@/components/Breadcrumbs.astro'
 // import PageHead from '@/components/PageHead.astro'
 // import PaginationComponent from '@/components/ui/pagination'
-import { SITE } from '@/consts'
 import Layout from '@/layouts/Layout.astro'
 import { getAllPosts, groupPostsByYear } from '@/lib/data-utils'
 import Container from '@components/Container.astro'
 import PostCard from '@components/PostCard.astro'
-import type { PaginateFunction } from 'astro'
 
-export async function getStaticPaths({
-  paginate,
-}: {
-  paginate: PaginateFunction
-}) {
-  const allPosts = await getAllPosts()
-  return paginate(allPosts, { pageSize: SITE.postsPerPage })
-}
-
-const { page } = Astro.props
-
-const postsByYear = groupPostsByYear(page.data)
+const posts = await getAllPosts();
+const postsByYear = groupPostsByYear(posts)
 const years = Object.keys(postsByYear).sort((a, b) => parseInt(b) - parseInt(a))
 ---
 

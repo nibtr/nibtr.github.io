@@ -2,8 +2,6 @@
   title = 'Motherfucking Blog'
   date = 2024-01-09T19:15:18+07:00
   draft = true
-  [params]
-    toc = false
 +++
 
 ## This is a motherfucking blog.
