@@ -2,8 +2,6 @@
   title = "println!(\"Hello, friend!\");"
   date = 2023-05-16T20:23:18+07:00
   draft = false
-  [params]
-    toc = false
 +++
 
 _"Hello, friend"_? That's lame. Maybe I should give this blog post a proper name. But _"Hello, friend"_?, that's the second most popular two-word phrase literally every programmer says just behind _"Hello, world"_ right? I mean, [he](https://en.wikipedia.org/wiki/Mr._Robot) said it, and it stuck...

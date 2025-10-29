@@ -2,8 +2,6 @@
   title = "Things I find beautiful"
   date = 2023-06-10T21:15:18+07:00
   draft = false
-  [params]
-    toc = false
 +++
 
 [The Secret Life of Walter Mitty](<https://en.wikipedia.org/wiki/The_Secret_Life_of_Walter_Mitty_(2013_film)>)\

@@ -2,8 +2,6 @@
 title = 'tmux + fzf'
 date = 2025-03-28T10:44:01+07:00
 draft = false 
-[params]
-  toc = true
 +++
 
 ## tmux

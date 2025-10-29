@@ -1,7 +1,7 @@
 import type { Site } from "@types";
 
 export const SITE: Site = {
-  title: 'astro-erudite',
+  title: 'home',
   description:
     'astro-erudite is a opinionated, unstyled blogging template—built with Astro, Tailwind, and shadcn/ui.',
   href: 'https://astro-erudite.vercel.app',

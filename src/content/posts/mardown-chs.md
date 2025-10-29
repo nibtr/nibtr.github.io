@@ -2,8 +2,6 @@
   title = "Markdown Test"
   date = 2023-10-18T16:23:18+07:00
   draft = false 
-  [params]
-    toc = false
 +++
 
 ## Headings

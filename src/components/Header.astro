@@ -5,16 +5,13 @@ import Link from "@components/Link.astro";
 ---
 
 <header transition:persist>
-  <div
-    class="mx-auto flex max-w-3xl items-center justify-between gap-4 px-4 py-3"
-  >
-      <Link href="/" underline={false}>
-        <div class="font-semibold">
-          {SITE.title}&nbsp;🔬
-        </div>
-      </Link>
-
+  <Container>
+    <div class="flex items-center">
       <nav class="flex items-center gap-1 text-sm">
+        <Link href="/">home</Link>
+        <span>
+          {`/`}
+        </span>
         <Link href="/posts">posts</Link>
         <span>
           {`/`}
@@ -44,6 +41,6 @@ import Link from "@components/Link.astro";
           &nbsp;Search
         </button>
       </nav>
-  </div>
-  <!-- </Container> -->
+    </div>
+  </Container>
 </header>
