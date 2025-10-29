@@ -8,6 +8,12 @@ export async function getAllPosts(): Promise<CollectionEntry<"posts">[]> {
     .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
 }
 
+export async function getAllProjects(): Promise<CollectionEntry<"projects">[]> {
+  const projects = await getCollection("projects")
+  return projects 
+    .sort((a, b) => b.data.publishedDate.valueOf() - a.data.publishedDate.valueOf())
+}
+
 export function groupPostsByYear(posts: CollectionEntry<"posts">[]): Record<string, CollectionEntry<"posts">[]> {
   return posts.reduce(
     (acc: Record<string, CollectionEntry<"posts">[]>, post) => {

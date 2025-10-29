@@ -1,0 +1,59 @@
+---
+// import BlogCard from '@/components/BlogCard.astro'
+// import Breadcrumbs from '@/components/Breadcrumbs.astro'
+// import PageHead from '@/components/PageHead.astro'
+// import PaginationComponent from '@/components/ui/pagination'
+import { SITE } from '@/consts'
+import Layout from '@/layouts/Layout.astro'
+import { getAllProjects } from '@/lib/data-utils'
+import Container from '@components/Container.astro'
+import PostCard from '@components/PostCard.astro'
+import type { PaginateFunction } from 'astro'
+
+export async function getStaticPaths({
+  paginate,
+}: {
+  paginate: PaginateFunction
+}) {
+  const allProjects = await getAllProjects()
+  return paginate(allProjects, { pageSize: SITE.postsPerPage })
+}
+
+const { page } = Astro.props
+const posts = page.data;
+---
+
+<Layout class="max-w-3xl" title='Blog'>
+  <Container>
+  <!-- <PageHead slot="head" title="Blog" /> -->
+  <!-- <Breadcrumbs -->
+  <!--   items={[ -->
+  <!--     { label: 'Blog', href: '/blog', icon: 'lucide:library-big' }, -->
+  <!--     { label: `Page ${page.currentPage}`, icon: 'lucide:book-copy' }, -->
+  <!--   ]} -->
+  <!-- /> -->
+
+  <div class="flex min-h-[calc(100vh-18rem)] flex-col gap-y-8">
+    <div class="font-bold">
+      Projects
+    </div>
+    {
+      posts.map((post) => (
+        <section class="flex flex-col gap-y-4">
+          <ul class="flex flex-col gap-4">
+              <li>
+                <PostCard entry={post} />
+              </li>
+          </ul>
+        </section>
+      ))
+    }
+  </div>
+
+  <!-- <PaginationComponent -->
+  <!--   currentPage={page.currentPage} -->
+  <!--   totalPages={page.lastPage} -->
+  <!--   baseUrl="/blog/" -->
+  <!--   client:load -->
+  </Container>
+</Layout>
