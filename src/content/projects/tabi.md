@@ -38,9 +38,9 @@ as a platform to manage bookings and revenue for their accommodation services.
 
 ### Diagrams
 
-![Overview diagram](../../assets/tabi/overview-diagram.png)
+![Overview diagram](../../assets/projects/tabi/overview-diagram.png)
 
-![AWS architecture](../../assets/tabi/aws-architecture.png)
+![AWS architecture](../../assets/projects/tabi/aws-architecture.png)
 
 ## Features
 

@@ -108,8 +108,10 @@ const tocSections = await getTOCSections(currentProjectId)
       </div>
       <div>
         <a class="underline" href={project.data.repo} target="_blank">repo</a>
-        {'/'}
-        <a class="underline" href={project.data.demo} target="_blank">demo</a>
+        {project.data.demo && (
+          <span>/</span>
+          <a class="underline" href={project.data.demo} target="_blank">demo</a>
+        )}
       </div>
     </section>
 
