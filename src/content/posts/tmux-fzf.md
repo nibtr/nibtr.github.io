@@ -33,7 +33,7 @@ speed and ergonomic. Better yet, tmux is highly customizable - keybindings and b
 be defined in a config file, which you can version control and reuse
 across machines. Pretty neat!. Plus it looks cool.
 
-![tmux](/images/tmux.png)
+![tmux](../../assets/tmux-fzf/tmux.png)
 
 ## fzf
 

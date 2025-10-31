@@ -196,11 +196,8 @@ message = `Something went wrong. Please provide this error ID: ${req.id} for sup
 
 ## Logs
 
-Without logs, we are basically flying blind, and we really don’t want this.
-
-Most of the times we can just use console.log to log the information we want.
-However, for a more robust logger, I recommend using `winston` or `pino`.
-Using a logger library has some benefits:
+Most of the times we can just use `console.log` to log the information we want.
+However, for a more robust logger, I recommend using `winston` or `pino`. Using a logger library has some benefits:
 
 - Log levels, which we can customize based on environment.
 - Structured logs such as JSON helps with filtering in production.
