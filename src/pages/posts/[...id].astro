@@ -1,0 +1,161 @@
+---
+import TOCSidebar from "@components/TOCSidebar.astro";
+import Layout from "@layouts/Layout.astro"
+import { getAllPostsAndSubposts, getCombinedReadingTime, getParentId, getPostReadingTime, getSubpostCount, getTOCSections, hasSubposts, isSubpost } from "@lib/data-utils"
+import { formatDate } from "@lib/utils";
+import type { CollectionEntry } from "astro:content";
+import { render } from "astro:content";
+
+interface Props {
+  post: CollectionEntry<"posts">;
+}
+
+export async function getStaticPaths() {
+  const posts = await getAllPostsAndSubposts()
+  return posts.map((post) => ({
+    params: { id: post.id },
+    props: post,
+  }))
+}
+
+const post = Astro.props as unknown as CollectionEntry<"posts">;
+const currentPostId = Astro.params.id
+
+const isCurrentSubpost = isSubpost(currentPostId)
+const hasChildPosts = await hasSubposts(currentPostId)
+const subpostCount = !isCurrentSubpost
+  ? await getSubpostCount(currentPostId)
+  : 0;
+const postReadingTime = await getPostReadingTime(currentPostId)
+const combinedReadingTime =
+  hasChildPosts && !isCurrentSubpost
+    ? await getCombinedReadingTime(currentPostId)
+    : null
+
+const { Content, headings } = await render(post);
+const tocSections = await getTOCSections(currentPostId)
+---
+
+<Layout title={post.data.title}>
+  <section
+    class="grid grid-cols-[minmax(0px,1fr)_min(calc(var(--breakpoint-md)-2rem),100%)_minmax(0px,1fr)] gap-y-6"
+  >
+    <!-- <div class="col-start-2"> -->
+    <!--   <Breadcrumbs -->
+    <!--     items={[ -->
+    <!--       { href: '/blog', label: 'Blog', icon: 'lucide:library-big' }, -->
+    <!--       ...(isCurrentSubpost && parentPost -->
+    <!--         ? [ -->
+    <!--             { -->
+    <!--               href: `/blog/${parentPost.id}`, -->
+    <!--               label: parentPost.data.title, -->
+    <!--               icon: 'lucide:book-open', -->
+    <!--             }, -->
+    <!--             { -->
+    <!--               href: `/blog/${currentPostId}`, -->
+    <!--               label: post.data.title, -->
+    <!--               icon: 'lucide:file-text', -->
+    <!--             }, -->
+    <!--           ] -->
+    <!--         : [ -->
+    <!--             { -->
+    <!--               href: `/blog/${currentPostId}`, -->
+    <!--               label: post.data.title, -->
+    <!--               icon: 'lucide:book-open-text', -->
+    <!--             }, -->
+    <!--           ]), -->
+    <!--     ]} -->
+    <!--   /> -->
+    <!-- </div> -->
+
+    <section class="col-start-2 flex flex-col">
+      <div class="">
+        <h1
+          class="mb-2 scroll-mt-31 text-2xl leading-tight font-medium sm:text-3xl"
+          id="post-title"
+        >
+          {post.data.title}
+        </h1>
+      </div>
+
+      <div
+        class="text-muted-foreground divide-border mb-4 flex flex-col items-center divide-y text-xs sm:flex-row sm:flex-wrap sm:divide-x sm:divide-y-0 sm:text-sm"
+      >
+        <div
+          class="flex w-full items-center justify-center gap-2 py-2 sm:w-fit sm:px-2 sm:py-0 first:sm:pl-0 last:sm:pr-0"
+        >
+          <span>{formatDate(post.data.date)}</span>
+        </div>
+        <div
+          class="flex w-full items-center justify-center gap-2 py-2 sm:w-fit sm:px-2 sm:py-0 first:sm:pl-0 last:sm:pr-0"
+        >
+          <span>
+            {postReadingTime}
+            {
+              combinedReadingTime &&
+                combinedReadingTime !== postReadingTime && (
+                  <span class="text-muted-foreground">
+                    {' '}
+                    ({combinedReadingTime} total)
+                  </span>
+                )
+            }
+          </span>
+        </div>
+
+        {
+          subpostCount > 0 && (
+            <div class="flex w-full items-center justify-center gap-1 py-2 sm:w-fit sm:px-2 sm:py-0 first:sm:pl-0 last:sm:pr-0">
+              <!-- <Icon name="lucide:file-text" class="size-3" /> -->
+              {subpostCount} subpost{subpostCount === 1 ? '' : 's'}
+            </div>
+          )
+        }
+
+        <!-- <div class="flex flex-wrap justify-center gap-2"> -->
+        <!--     { -->
+        <!--       post.data.tags && -->
+        <!--         post.data.tags.length > 0 && -->
+        <!--         post.data.tags.map((tag) => ( -->
+        <!--           <a -->
+        <!--             href={`/tags/${tag}`} -->
+        <!--             class={badgeVariants({ variant: 'muted' })} -->
+        <!--           > -->
+        <!--             <Icon name="lucide:hash" class="size-3" /> -->
+        <!--             {tag} -->
+        <!--           </a> -->
+        <!--         )) -->
+        <!--     } -->
+        <!--   </div> -->
+
+        <!-- { -->
+        <!--   tocSections.length > 0 && ( -->
+        <!--     <TOCSidebar sections={tocSections} currentPostId={currentPostId} /> -->
+        <!--   ) -->
+        <!-- } -->
+      </div>
+    </section>
+
+    <!-- { -->
+    <!--   tocSections.length > 0 && ( -->
+    <!--     <TOCSidebar sections={tocSections} currentPostId={currentPostId} /> -->
+    <!--   ) -->
+    <!-- } -->
+
+    <article class="prose col-start-2 max-w-none">
+      <Content />
+    </article>
+
+    <!-- { -->
+    <!--   (hasChildPosts || isCurrentSubpost) && ( -->
+    <!--     <SubpostsSidebar -->
+    <!--       parentId={ -->
+    <!--         isCurrentSubpost ? getParentId(currentPostId) : currentPostId -->
+    <!--       } -->
+    <!--       className="w-64" -->
+    <!--     /> -->
+    <!--   ) -->
+    <!-- } -->
+
+  </section>
+</Layout>

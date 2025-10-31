@@ -1,0 +1,36 @@
+---
+import '@/styles/global.css'
+// import '@/styles/typography.css'
+
+// import Footer from '@/components/Footer.astro'
+// import Head from '@/components/Head.astro'
+import Header from '@/components/Header.astro'
+import { SITE } from '@consts';
+import Head from '@components/Head.astro';
+import { cn } from '@/lib/utils'
+import PageFind from "@components/PageFind.astro";
+
+interface Props {
+  class?: string
+  title: string,
+  description?: string
+}
+
+const { title, description } = Astro.props
+---
+
+<!doctype html>
+<html
+  class="bg-background text-foreground"
+  lang={SITE.locale}
+>
+  <Head title={title} description={description} />
+  <body class="flex h-fit min-h-screen flex-col gap-y-6 font-sans">
+    <Header />
+    <main>
+      <slot />
+    </main>
+    <!-- <Footer /> -->
+    <PageFind />
+  </body>
+</html>
