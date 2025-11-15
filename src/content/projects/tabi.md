@@ -62,7 +62,7 @@ For more details, please refer to the [README](https://github.com/nibtr/tabi-ai/
 - Programming language: Golang, Python, Typescript.
 - Framework: Serverless, Langchain, Flask, Antd, React.
 - AWS services: Lambda, VPC, RDS, EC2, EventBridge.
-- 3rd party APIs: Paypal Sanbox, Firebase.
+- 3rd party APIs: Paypal sandbox, Firebase.
 
 ## Local development
 
