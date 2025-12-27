@@ -46,7 +46,7 @@ or visit the [demo](https://nibtr.github.io/3pp).
 ## References
 
 The demo is mostly referenced from this [video](https://www.youtube.com/watch?v=qjWkNZ0SXfo) by Tsoding. He explains
-algorithm pretty clearly.
+the algorithm pretty clearly.
 
 I also did some additional read on:
 
