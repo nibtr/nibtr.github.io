@@ -1,6 +1,6 @@
 +++
 title = '3pp'
-publishedDate = 2025-12-29T18:32:23+07:00
+publishedDate = 2025-12-25T18:32:23+07:00
 draft = false
 repo = 'https://github.com/nibtr/3pp'
 demo = 'https://nibtr.github.io/3pp'
