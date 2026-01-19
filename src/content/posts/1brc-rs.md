@@ -94,14 +94,10 @@ When you need to optimize something, and don't know where to start, profiling
 should be your first step.
 
 On Linux, `perf` is one of the best tools to use, has many features and
-is straight out of the box. I will be using it to analyze some specific
-methods and functions, as well as the stats of the whole program, giving
-me insights into low-level CPU counters.
+is straight out of the box. I will be using it to analyze the stats of
+the whole program, giving me insights into low-level CPU counters.
 
 ```bash
-perf record -g # record the program execution
-perf report -g # analyze the recorded data
-
 # analyze the stats
 perf stat -e branches,branch-misses,cache-references,cache-misses,cycles,instructions,idle-cycles-backend,idle-cycles-frontend,task-clock -- <program>
 ```
@@ -186,9 +182,9 @@ gain more performance.
 reallocation and copying, I also initialized the HashMap with a capacity of 10_000,
 which is the maximum number of entries we expect to have.
 
-Then at the end of the program, we can convert the HashMap back to a BTreeMap
-and print the results. We can do this because now we will only have
-10_000 unique entries to deal with.
+Then at the end of the program, I converted the HashMap back to a BTreeMap
+and print the results. This won't affect the performance that much because
+now we will only have 10_000 unique entries to deal with.
 
 All this is just a simple change to the code:
 
@@ -212,8 +208,8 @@ while let Some((station, (min, max, sum, count))) = stats.next() {
 print!("}}")
 ```
 
-This change gets me down to `~85s`, which is a `~1.87x` speedup from the
-original solution. Not bad, right?
+Just by changing the data structure I'm now down to `~85s`, which is a
+`~1.87x` speedup from the naive optimization. Not bad, right?
 
 ## Optimization 3: lazy string allocation in HashMap keys
 
@@ -247,7 +243,7 @@ When splitting the row by `;`, the `station` we get back is already a `&str`.
 We can just use it directly for key lookup, and only allocate a new `String`
 for the key when we need to insert a new value.
 
-This change saves us `~12s` and brings the total time down to `~73s`,
+This change saved me `~12s` and brought the total time down to `~73s`,
 with a `~2.18x` speedup.
 
 ## Optimization 4: using `Vec<u8>` instead of `String` for keys + unchecked UTF-8 parsing
@@ -290,12 +286,13 @@ let stats = BTreeMap::from_iter(
 // ...
 ```
 
-Ooh, `unsafe`! But don't worry, we can use unsafe here because we know
-the temperature we're parsing is valid UTF-8, the same goes for station names.
-So `std::str::from_utf8_unchecked` and `String::from_utf8_unchecked` are
-actually safe to use and are faster.
+Ooh, `unsafe`! But don't worry, it's totally fine here because we know
+the temperature we're parsing is guaranteed to be valid UTF-8, the same
+goes for station names. So `std::str::from_utf8_unchecked` and
+`String::from_utf8_unchecked` are actually safe to use and are much faster.
+We still need to do `station.to_vec()` to get a `Vec<u8>` though.
 
-We're now down to `~59s` with a `~2.7x` speedup.
+Now it's down to `~59s` with a `~2.7x` speedup.
 
 ## Optimization 5: Parse temperatures as integers
 
@@ -304,7 +301,8 @@ temperatures as integers and only when printing do we need to parse them
 as floats.
 
 Storing numbers as integers (more specifically as `i32`) is faster since the CPU
-instruction for addition is simpler, and as a result, we can save some CPU cycles.
+instruction for addition is simpler, and as a result, we can save some CPU cycles
+when doing the calculations.
 
 ```rust
 // (min, max, sum, count)
@@ -353,8 +351,8 @@ different cases and update the `n` variable accordingly. Then we return the
 result. E.g. if the temperature is `-12.3`, we will get `-123`. Then
 when printing, we can divide the value by 10 to get the actual float.
 
-Now we're down to `~55s`, that saves us around `4s`. Not much but it's
-still a win. Looking at the perf stats:
+Now it's down to `~55s`, that saves us around `4s`. Not much but it's
+still a win. Looking at the `perf` stats:
 
 ```text
 # Before optimization
@@ -461,6 +459,165 @@ The fact that it's so easy to implement is already a win for me :).
 
 Now we're getting into the fun part.
 
-`mmap` is a new concept for me at the time
+[mmap](https://en.wikipedia.org/wiki/Mmap) is a new concept for me at
+the time of doing the challenge, and since everyone went for this
+approach, I decided to try it out.
+
+Basically, `mmap` lets the operating system map the file directly into
+the virtual memory space so I can treat it like a large byte array in
+memory. It also avoids the cost of extra copies from the kernel to an
+in-memory buffer and instead accesses the kernel's page cache directly.
+In a hot loop like what we're doing, this can be a huge performance boost.
+
+In Rust, `memmap2` is a crate that provides a simple API to use `mmap`.
+But since I'm not allowed to use any external dependencies, I had to
+manually copy a small part of the code from the crate (this is fine
+right? :D).
+
+```rust
+unsafe fn mmap(f: File) -> Result<&'static [u8], io::Error> {
+    let len = f.metadata()?.len();
+
+    unsafe {
+        let ptr = libc::mmap(
+            std::ptr::null_mut(),
+            len as libc::size_t,
+            libc::PROT_READ,
+            libc::MAP_PRIVATE,
+            f.as_raw_fd(),
+            0,
+        );
+
+        if ptr == libc::MAP_FAILED {
+            Err(io::Error::last_os_error())
+        } else {
+            if libc::madvise(ptr, len as libc::size_t, libc::MADV_SEQUENTIAL) != 0 {
+                Err(io::Error::last_os_error())
+            } else {
+                Ok(std::slice::from_raw_parts(ptr as *const u8, len as usize))
+            }
+        }
+    }
+}
+```
+
+But wait, `libc`? Isn't that a dependency? It is, but I think it's a
+necessary dependency if we want to use `mmap`. Besides, `std` uses `libc`
+internally.
+
+`libc::mmap()` is inherently unsafe, but that's not a problem here because the
+file is read-only, never mutated, and mapped for the entire duration of
+the program. Furthermore, because we're reading the file sequentially, with
+`madvise(MADV_SEQUENTIAL)`, we can also explicitly hint to the kernel
+that the access pattern is sequential, further improving the performance by
+fetching more data from the disk. I know I should have used `libc::munmap()` to
+unmap the file, but I wanted to keep the code as simple as possible.
+
+Now we just need to use it like so:
+
+```rust
+let f = File::open("data/measurements.txt").expect("file should exist");
+let f = unsafe { mmap(f).unwrap() };
+// ...
+```
+
+and change how we split the `\n`:
+
+```rust
+for line in f.split(|c| *c == b'\n') {
+    // this is needed for case we're at the end of the file
+    if line.is_empty() {
+        continue;
+    }
+    // ...
+}
+```
+
+The new `mmap` approach brought the total time down to `~33.5s` with a
+`~4.76x` speedup from the very first optimization. That's a huge win!
+
+## Optimization 8: memchr
+
+Using `libc::mmap()` gives us essentially “parallel I/O” because the kernel
+handles read-ahead automatically. On top of that, we can speed up parsing
+by using `libc::memchr()` to find `\n` and `;` instead of doing a `.split()` on the slice.
+Under the hood, `libc::memchr()` is highly optimized at the CPU level,
+utilizing [SIMD](https://en.wikipedia.org/wiki/Single_instruction,_multiple_data)
+when possible and scans memory much faster than a typical Rust iterator or string split.
+
+I still don't understand much about SIMD, but the key idea is that the CPU can process multiple
+bytes at once instead of one at a time.
+
+With `memchr`, because it returns a pointer to the first occurrence of
+the byte we want, we need to adjust how we handle the loop logic:
+
+```rust
+let mut at = 0;
+loop {
+    let rest = &map[at..];
+    let nl_ptr = unsafe {
+        libc::memchr(
+            rest.as_ptr() as *const libc::c_void,
+            b'\n' as libc::c_int,
+            rest.len(),
+        )
+    };
+
+    let line = if nl_ptr.is_null() {
+        rest
+    } else {
+        /// SAFETY: same contiguous memory as `rest`
+        let len = unsafe { (nl_ptr as *const u8).offset_from(rest.as_ptr()) } as usize;
+        &rest[..len]
+    };
+
+    at += line.len() + 1;
+
+    if line.is_empty() {
+        break;
+    }
+
+    let semicolon_ptr = unsafe {
+        libc::memchr(
+            line.as_ptr() as *const libc::c_void,
+            b';' as libc::c_int,
+            line.len(),
+        )
+    };
+    let semicolon_pos = if semicolon_ptr.is_null() {
+        continue; // skip malformed lines
+    } else {
+        unsafe { (semicolon_ptr as *const u8).offset_from(line.as_ptr()) as usize }
+    };
+
+    let station = &line[..semicolon_pos];
+    let temperature = &line[(semicolon_pos + 1)..];
+    let temperature = parse_temperature(temperature);
+
+    let stats = match stats.get_mut(station) {
+        Some(stats) => stats,
+        None => stats
+            .entry(station.to_vec())
+            .or_insert((i32::MAX, i32::MIN, 0, 0)),
+    };
+
+    stats.0 = stats.0.min(temperature);
+    stats.1 = stats.1.max(temperature);
+    stats.2 += temperature;
+    stats.3 += 1;
+}
+
+// ...
+```
+
+We use unsafe here because `libc::memchr` and pointer arithmetic can’t
+be checked by Rust, but it’s safe in our code because:
+- `mmap` slice covers the entire file, so pointers are valid.
+- We never write to memory, only read.
+- All pointer arithmetic stays within bounds.
+- The scan is strictly forward, so no underflow or dangling pointers.
+
+We're now at `~25.4s` with a `~6.3x` speedup from the naive
+optimization.
 
 ## Benchmarks
