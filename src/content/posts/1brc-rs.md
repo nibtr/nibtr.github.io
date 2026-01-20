@@ -714,4 +714,207 @@ We can see that we have less branches to process, also the branch misses
 dropped a little bit, as well as the total cycles and instructions.
 This proves that the new optimization works as expected.
 
+## Optimization 10: Better hashing, use Vec and manual collision detection instead of HashMap
+
+At this point, I was fairly happy with the results (and also a bit stuck :D).
+To gain better insights, I took a look at the [top Java solution](https://github.com/gunnarmorling/1brc/blob/main/src/main/java/dev/morling/onebrc/CalculateAverage_thomaswue.java)
+by *thomaswue* and see what are their approach. 
+
+After some digging, what I understood was:
+
+- He uses a fixed-size raw array as a custom open-addressed hash table,
+with manual collision handling.
+- During collision resolution, he first compares the first 16 bytes of
+the key and only falls back to a full key comparison if needed.
+- Each entry is stored as a struct containing a pointer-like value
+(likely an offset into the mmap’d byte slice) along with the name length,
+allowing the original key to be reconstructed via slicing (offset + length).
+
+This has a few advantages:
+- A raw array has significantly less overhead than a general-purpose `HashMap`.
+- Comparing the first 16 bytes fits into a couple of CPU registers and
+avoids a full byte-by-byte comparison in the common case.
+- There are no allocations, no copying, and no UTF-8 validation - the key
+already lives in the mmap’d file and is simply referenced.
+
+What suprised me the most was how effective the partial key comparison is.
+Like any other programmer, I ~~copied and pas~~ tried to implement it myself.
+
+First let's introduce a table size and change how we store the entries
+and how we print the results:
+
+```rust
+const HASH_TABLE_SIZE: usize = 1 << 17;
+
+#[derive(Copy, Clone)]
+struct Entry {
+    w0: usize,
+    w1: usize,
+    name_len: usize,
+    name_offset: usize, // offset relative to full mmap
+    min: i32,
+    max: i32,
+    sum: i32,
+    count: usize,
+}
+
+let mut entries: Vec<Option<Entry>> = vec![None; HASH_TABLE_SIZE];
+// ...
+
+let mut at = 0;
+while at < map.len() {
+    // ..
+    // We will implement this
+    insert_or_update(&mut entries, station, temperature, map);
+}
+
+// printing
+let mut results: Vec<_> = entries.into_iter().flatten().collect();
+results.sort_by_key(|e| {
+    let name = &map[e.name_offset..(e.name_offset + e.name_len)];
+    name.to_vec()
+});
+
+print!("{{");
+for (i, entry) in results.iter().enumerate() {
+    let name_bytes = &map[entry.name_offset..entry.name_offset + entry.name_len];
+    let name = unsafe { std::str::from_utf8_unchecked(name_bytes) };
+    print!(
+        "{name}={:.1}/{:.1}/{:.1}",
+        entry.min as f64 / 10.0,
+        entry.sum as f64 / 10.0 / entry.count as f64,
+        entry.max as f64 / 10.0
+    );
+    if i + 1 != results.len() {
+        print!(", ");
+    }
+}
+println!("}}");
+```
+
+Now we implement the main logic. First we'll need a function to hash the
+bytes to the index in the table:
+
+```rust
+// cred: https://github.com/thomaswue
+#[inline(always)]
+fn hash_to_idx(word_0: usize, word_1: usize, table_size: usize) -> usize {
+    let mut hash = word_0 ^ word_1;
+    hash ^= (hash >> 33) ^ (hash >> 15);
+    hash & (table_size - 1)
+}
+```
+
+The core of the optimization lives in `insert_or_update`:
+
+```rust
+// cred: https://github.com/thomaswue
+fn insert_or_update(entries: &mut [Option<Entry>], station: &[u8], temperature: i32, map: &[u8]) {
+    let mut w0: usize = 0;
+    let mut w1: usize = 0;
+
+    for i in 0..station.len().min(8) {
+        w0 |= (station[i] as usize) << (i * 8);
+    }
+    for i in 0..station.len().saturating_sub(8).min(8) {
+        w1 |= (station[i + 8] as usize) << (i * 8);
+    }
+
+    let mut idx = hash_to_idx(w0, w1, entries.len());
+    let step = 31; // works if table size is a power of 2
+    let mask = entries.len() - 1;
+
+    loop {
+        match &mut entries[idx] {
+            // empty slot -> insert
+            None => {
+                entries[idx] = Some(Entry {
+                    w0,
+                    w1,
+                    min: temperature,
+                    max: temperature,
+                    sum: temperature,
+                    count: 1,
+                    name_len: station.len(),
+                    name_offset: unsafe { station.as_ptr().offset_from(map.as_ptr()) } as usize,
+                });
+                return;
+            }
+            Some(e) => {
+                // fast reject if collision
+                if e.w0 != w0 || e.w1 != w1 {
+                    idx = (idx + step) & mask;
+                    continue;
+                }
+
+                if e.name_len as usize != station.len() {
+                    idx = (idx + step) & mask;
+                    continue;
+                }
+
+                // slow path if collision: compare full slice
+                let existing =
+                    unsafe { map.get_unchecked(e.name_offset..e.name_offset + e.name_len) };
+                if existing != station {
+                    idx = (idx + step) & mask;
+                    continue;
+                }
+
+                // exist, update entry
+                e.min = e.min.min(temperature);
+                e.max = e.max.max(temperature);
+                e.sum += temperature;
+                e.count += 1;
+
+                return;
+            }
+        }
+    }
+}
+```
+
+This snippet right here is a bit wizardry:
+
+```rust
+for i in 0..station.len().min(8) {
+    w0 |= (station[i] as usize) << (i * 8);
+}
+for i in 0..station.len().saturating_sub(8).min(8) {
+    w1 |= (station[i + 8] as usize) << (i * 8);
+}
+```
+
+Essentially, instead of comparing station names byte by byte, the code
+packs the first 16 bytes of the name into two usize values:
+
+- w0 holds bytes 0..8
+- w1 holds bytes 8..16
+
+Each byte is shifted into position and OR’d into the final value,
+effectively creating a compact, fixed-size representation of the key
+prefix. Most comparisons are resolved by checking just these two integers.
+There is a better way to do this (using bit mask), which I’ll cover in
+the next optimization.
+
+With this change alone, the total runtime dropped to `~21s` with a total
+speedup of `~7.5x`. Not bad at all.
+
 ## Benchmarks
+
+Here's the full benchmark results:
+
+| Version | Description                                     | Median Time (s)| Mean ± SD (s)   | Speedup (vs v1) |
+|---------|-------------------------------------------------|----------------|-----------------|-----------------| 
+| v1      | Naive version: BTreeMap                         | 159.40         | 161.68 ± 5.68   | 1.0x            |
+| v2      | Normal HashMap with capacity                    | 85.16          | 85.54 ± 1.28    | 1.87x           |
+| v3      | Lazy string allocate in HashMap key             | 73.17          | 73.15 ± 0.27    | 2.18x           |
+| v4      | Vec<u8> as key + unchecked UTF-8 parse          | 59.24          | 59.30 ± 0.30    | 2.69x           |
+| v5      | Parse temperature as i32                        | 55.08          | 55.18 ± 0.50    | 2.89x           |
+| v6      | FNV-1a hasher                                   | 51.91          | 51.82 ± 0.23    | 3.07x           |
+| v7      | mmap                                            | 33.50          | 33.42 ± 0.21    | 4.76x           |
+| v8      | memchr                                          | 25.39          | 25.44 ± 0.13    | 6.28x           |
+| v9      | Unroll temperature parsing                      | 23.37          | 23.43 ± 0.15    | 6.82x           |
+| v10     | Better hashing, use Vec<> and manual collision detection instead of HashMap ([ref](https://github.com/gunnarmorling/1brc/blob/main/src/main/java/dev/morling/onebrc/CalculateAverage_thomaswue.java#L239)) | 21.06 | 21.05 ± 0.10 | 7.57x |
+| v11     | Multi-threading                                 | 3.50           | 3.50 ± 0.02     | 45.54x          |
+| v12     | Multi-threading + inline station name + better temperature parse + faster first 16 bytes load for name (final ?) | 2.35 | 2.35 ± 0.05 | 67.83x |
+
