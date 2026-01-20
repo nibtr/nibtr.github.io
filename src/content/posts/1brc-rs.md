@@ -620,4 +620,55 @@ be checked by Rust, but it’s safe in our code because:
 We're now at `~25.4s` with a `~6.3x` speedup from the naive
 optimization.
 
+## Optimization 9: Unroll temperature parsing
+
+Currently, I'm doing a loop when parsing the temperature:
+
+```rust
+fn parse_temperature(t: &[u8]) -> i32 {
+    // rule states that file is valid floating point with 1 decimal place
+    let mut signed = 1;
+    let mut n = 0;
+    for &b in t {
+        match b {
+            b'-' => signed = -1,
+            b'.' => {}
+            _ => n = n * 10 + (b - b'0') as i32,
+        }
+    }
+    signed * n
+}
+```
+
+But since the constraint confirms that a floating value is guaranteed to
+have the format `[-]DD.D` or `[-]D.D`, with 1 decimal place, we can
+actually ignore (unroll) the loop entirely and just do manual
+increments:
+
+```rust
+#[inline(always)]
+fn parse_temperature(t: &[u8]) -> i32 {
+    let mut neg = 1;
+    let mut i = 0;
+    if t[i] == b'-' {
+        i += 1;
+        neg = -1;
+    }
+
+    let mut n = (t[i] - b'0') as i32;
+    i += 1;
+
+    if t[i] != b'.' {
+        n = n * 10 + (t[i] - b'0') as i32;
+        i += 1;
+    }
+
+    i += 1; // skip .
+    n = n * 10 + (t[i] - b'0') as i32;
+    neg * n
+}
+```
+
+
+
 ## Benchmarks
