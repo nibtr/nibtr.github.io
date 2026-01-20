@@ -79,7 +79,7 @@ constraints:
   99.9 (inclusive), always with one fractional digit.
 - There is a maximum of 10,000 unique station names.
 
-## System specs
+## System specs & Measurements
 
 All measurements are done on a machine with the following specs:
 
@@ -87,6 +87,9 @@ All measurements are done on a machine with the following specs:
 - CPU: AMD Ryzen 5 7600 (12 cores) measured at ~4.5-4.7 GHz
 - RAM: 32 GB DDR5
 - Storage: A pretty fast SSD
+
+Execution times are in seconds and are measured with `time` utility,
+with speedup being the ratio to the naive optimization.
 
 ## Profiling, then optimizing
 
@@ -175,16 +178,17 @@ efficient. This solution takes around **160s** to finish.
 Although `BTreeMap` helps with sorting the keys, it's not efficient when
 you have to insert a lot of elements in a hot loop since it has to
 rebalance the tree every time. Well, we could use a `HashMap` for this. A
-hash map is similar to a btree map, but it doesn't sort the keys so we
-gain more performance. 
+hash map is similar to a b-tree map but it doesn't have to sort
+anything while inserting so we can gain more performance. 
 
 `HashMap` under the hood uses a `Vec`, so to reduce the number of times on
 reallocation and copying, I also initialized the HashMap with a capacity of 10_000,
 which is the maximum number of entries we expect to have.
 
-Then at the end of the program, I converted the HashMap back to a BTreeMap
+Then at the end of the program, I converted the `HashMap` back to a `BTreeMap`
 and print the results. This won't affect the performance that much because
-now we will only have 10_000 unique entries to deal with.
+now we will only have 10_000 unique entries to deal with and only have
+to sort them once.
 
 All this is just a simple change to the code:
 
@@ -254,6 +258,8 @@ the data is guaranteed to be valid UTF-8.
 
 Also, since we don't plan on using any `String` APIs, we can just store
 the station names as `Vec<u8>` instead to avoid unnecessary overheads.
+Luckily for us, Rust allows `Vec<u8>` to be used directly as a `HashMap`
+key since it already implements the required traits: `Eq` and `Hash`.
 
 Let's do them one by one:
 
@@ -642,7 +648,7 @@ fn parse_temperature(t: &[u8]) -> i32 {
 }
 ```
 
-But since the constraint confirms that a floating value is guaranteed to
+But since the constraint guarantees the floating value to
 have the format `[-]DD.D` or `[-]D.D`, with 1 decimal place, we can
 actually ignore (unroll) the loop entirely and just do manual
 increments:
@@ -669,6 +675,23 @@ fn parse_temperature(t: &[u8]) -> i32 {
     n = n * 10 + (t[i] - b'0') as i32;
     neg * n
 }
+```
+
+By not having a loop, the CPU no longer has to deal with a data-dependent
+iteration. Instead, it can follow a mostly fixed control flow with just
+a couple of easy-to-predict branches. This turns the parser into a short,
+straight-line path, reduces branch mispredictions, and gives a nice
+performance boost on the hot path. You can read more about [Branch Predictor](https://en.wikipedia.org/wiki/Branch_predictor)
+and [Loop Unrolling](https://en.wikipedia.org/wiki/Loop_unrolling) on
+Wikipedia to learn more about these optimizations.
+
+With this change, we're now down to `~23.4s` with a `~6.8x` speedup,
+small improvement but still worth it. Looking at `perf stat` now:
+
+```text
+# Before optimization
+
+# After optimization
 ```
 
 ## Benchmarks
