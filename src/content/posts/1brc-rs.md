@@ -901,7 +901,9 @@ speedup of `~7.5x`. Not bad at all.
 
 ## Benchmarks
 
-Here's the full benchmark results:
+- Each version was run **5 times**.
+- Calculate the **median** and **mean** runtime.
+- Speedup is calculated relative to the baseline (v1).
 
 | Version | Description                                     | Median Time (s)| Mean ± SD (s)   | Speedup (vs v1) |
 |---------|-------------------------------------------------|----------------|-----------------|-----------------| 
