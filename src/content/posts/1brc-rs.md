@@ -691,7 +691,27 @@ small improvement but still worth it. Looking at `perf stat` now:
 ```text
 # Before optimization
 
+ 57,101,159,322      branches:u                       #    2.276 G/sec                       (85.71%)
+  1,693,650,023      branch-misses:u                  #    2.97% of all branches             (85.71%)
+  4,350,512,328      cache-references:u               #  173.410 M/sec                       (85.72%)
+    485,971,823      cache-misses:u                   #   11.17% of all cache refs           (85.71%)
+123,490,782,212      cycles:u                         #    4.922 GHz                         (85.71%)
+299,589,936,934      instructions:u                   #    2.43  insn per cycle
+                                              #    0.06  stalled cycles per insn     (85.72%)
+
 # After optimization
+
+ 43,501,493,817      branches:u                       #    1.882 G/sec                       (85.71%)
+  1,180,527,032      branch-misses:u                  #    2.71% of all branches             (85.71%)
+  4,927,317,991      cache-references:u               #  213.143 M/sec                       (85.72%)
+    591,556,496      cache-misses:u                   #   12.01% of all cache refs           (85.71%)
+113,411,564,919      cycles:u                         #    4.906 GHz                         (85.71%)
+287,745,770,431      instructions:u                   #    2.54  insn per cycle
+                                              #    0.04  stalled cycles per insn     (85.72%)
 ```
+
+We can see that we have less branches to process, also the branch misses
+dropped a little bit, as well as the total cycles and instructions.
+This proves that the new optimization works as expected.
 
 ## Benchmarks
