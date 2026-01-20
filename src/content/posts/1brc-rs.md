@@ -899,6 +899,12 @@ the next optimization.
 With this change alone, the total runtime dropped to `~21s` with a total
 speedup of `~7.5x`. Not bad at all.
 
+## Optimization 11: Multi-threading
+
+Of course!
+
+Now how do we go about this?
+
 ## Benchmarks
 
 - Each version was run **5 times**.
