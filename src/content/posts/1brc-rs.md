@@ -13,12 +13,12 @@ programming.
 
 Started from the humble **160s** of execution time, I was able to bring it
 down to **2.4s**, which is roughly a **66.7x** speedup! But hey the numbers only
-tell part of the story, I believe the real treasure is the learning and debugging
+tell part of the story, the real treasure is the learning and debugging
 along the way.
 
-This article is a summary of the 12 solutions I wrote in Rust, each is an
+This article is a summary of the 12 optimizations I wrote in Rust, each is an
 improvement on the previous one. We'll start off with a simple and naive
-solution and work our way up gradually to more complex solutions.
+optimization and work our way up gradually to more complex ones.
 
 Here's the rundown:
 
@@ -49,7 +49,7 @@ If you just want to see the results, skip to the [benchmarks](#benchmarks).
 
 ## The challenge
 
-The 1 billion row challenge is very simple: given a CSV file of 1
+The 1 billion row challenge is very simple: given a text file of 1
 billion rows, each row has a structure of `city;temperature`:
 
 ```csv
@@ -60,7 +60,7 @@ St. John's;15.2
 Cracow;12.6
 ```
 
-The program should print out the min, mean, and max values per station,
+The program should print out the **min, mean, and max** values per station,
 alphabetically ordered like so:
 
 ```text
@@ -108,7 +108,7 @@ pretty straightforward.
 
 ## Optimization 0: build configuration
 
-The solutions will be compiled in release mode, with the following
+The optimizations will be compiled in release mode, with the following
 configuration:
 
 ```toml
@@ -167,7 +167,7 @@ while let Some((station, (min, max, sum, count))) = stats.next() {
 print!("}}")
 ```
 
-It is as simple as it gets, but as you might have guessed, it's not very
+It is as straightforward as it gets, but as you might have guessed, it's not very
 efficient. This solution takes around **160s** to finish.
 
 ## Optimization 2: using a HashMap initialized with capacity
@@ -300,9 +300,11 @@ Here's a really neat trick I learned: you can actually parse the
 temperatures as integers and only when printing do we need to parse them
 as floats.
 
-Storing numbers as integers (more specifically as `i32`) is faster since the CPU
-instruction for addition is simpler, and as a result, we can save some CPU cycles
-when doing the calculations.
+Parsing and aggregating temperatures as integers avoids floating-point
+parsing, floating-point arithmetic, and rounding until the very end.
+This keeps the hot loop entirely in integer arithmetic, which reduces
+instruction count and register pressure, and as a result, saves us some
+CPU cycles.
 
 ```rust
 // (min, max, sum, count)
@@ -399,7 +401,7 @@ which is an algorithm that I can technically implement myself. I can go
 for `ahash` or `xxhash` crates, but that is against the rule of not
 using external dependencies.
 
-First I need to actually build the hasher, which is pretty simple:
+First I need to actually build the hasher:
 
 ```rust
 const FNV_OFFSET_BASIS: u64 = 0xcbf29ce484222325;
@@ -469,7 +471,7 @@ memory. It also avoids the cost of extra copies from the kernel to an
 in-memory buffer and instead accesses the kernel's page cache directly.
 In a hot loop like what we're doing, this can be a huge performance boost.
 
-In Rust, `memmap2` is a crate that provides a simple API to use `mmap`.
+In Rust, `memmap2` is a crate that provides APIs to use `mmap`.
 But since I'm not allowed to use any external dependencies, I had to
 manually copy a small part of the code from the crate (this is fine
 right? :D).
@@ -668,7 +670,5 @@ fn parse_temperature(t: &[u8]) -> i32 {
     neg * n
 }
 ```
-
-
 
 ## Benchmarks
