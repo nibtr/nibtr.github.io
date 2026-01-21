@@ -1286,24 +1286,22 @@ I set for myself. This exercise wasn’t really about shaving off the last
 few milliseconds, it was an opportunity for me to learn more about Rust
 and low level programming, and I'm glad I was able to do that.
 
-Will this all be useful to me in the future? Almost certainly, though
-maybe not in the ways I expect. Most production systems don’t need this
+Will this all be useful to me in the future? Maybe, though
+not in the ways I would expect. Most production systems don’t need this
 level of optimization, but knowing how and where performance is won makes
 it much easier to reason about slow paths and choose the right
 ones.
 
-I’ll be carrying these lessons forward into future projects, and if
-nothing else, this was a great reminder of why digging a bit deeper into
-systems programming is so rewarding.
+I’m definitely going to take these lessons into future projects. At the
+very least, it was a good reminder of why spending a bit more time
+digging into low-level programming can be really worth it.
 
-## My thanks
+## Acknowledgement
 
-Thanks to [jonhoo](https://github.com/jonhoo) and [thomaswue](https://github.com/thomaswue)
-for the inspiration and help with the optimizations.
-
-[jonhoo](https://github.com/jonhoo) is an exceptional Rust programmer
-and teacher, and I highly recommend checking out his [channel on
-Youtube](https://www.youtube.com/@jonhoo).
+My thanks to [jonhoo](https://github.com/jonhoo) and [thomaswue](https://github.com/thomaswue)
+for the inspiration of this challenge. [jonhoo](https://github.com/jonhoo)
+is also an exceptional Rust programmer and teacher, and I highly recommend
+checking out his [channel on Youtube](https://www.youtube.com/@jonhoo).
 
 ## Appendix: Benchmarks
 
