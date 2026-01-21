@@ -1,6 +1,6 @@
 +++
 title = '1 Billion Row Challenge in Rust: How I went from 160s to 2.4s'
-date = 2026-01-19T08:13:01+07:00
+date = 2026-01-20T20:13:01+07:00
 draft = false
 +++
 
