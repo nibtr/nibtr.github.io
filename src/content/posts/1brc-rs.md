@@ -4,7 +4,7 @@ date = 2026-01-19T08:13:01+07:00
 draft = false
 +++
 
-A while back I was looking for something to code on while learning Rust and I
+A while back I was looking for something to work on while learning Rust and I
 came across the [1 Billion Row
 Challenge](https://github.com/gunnarmorling/1brc). It's a fun little
 optimization challenge that I thought would be a good exercise to get
@@ -14,7 +14,7 @@ programming.
 Started from the humble **160s** of execution time, I was able to bring it
 down to **2.4s**, which is roughly a **66.7x** speedup! But hey the numbers only
 tell part of the story, the real treasure is the learning and debugging
-along the way.
+done along the way.
 
 This article is a summary of the 12 optimizations I wrote in Rust, each is an
 improvement on the previous one. We'll start off with a simple and naive
@@ -45,7 +45,7 @@ mistakes in the code. The quality of the code is as bad as it can be and
 is not portable across platforms except for unix-like systems.
 Nonetheless, I hope it's still useful to someone.
 
-If you just want to see the results, skip to the [benchmarks](#benchmarks).
+If you just want to see the results, skip to the [benchmarks](#appendix-benchmarks).
 
 ## The challenge
 
@@ -125,7 +125,7 @@ debug = true
 Here's a great [reference](https://nnethercote.github.io/perf-book/build-configuration.html)
 on the different options.
 
-## Optimization 1: naive and simple idiomatic Rust
+## Optimization 1: naive, idiomatic Rust
 
 As with any iterative process, the first thing I did was to write a very
 simple solution to make sure that I manage to get the results correctly.
@@ -252,7 +252,7 @@ with a `~2.18x` speedup.
 
 ## Optimization 4: using `Vec<u8>` instead of `String` for keys + unchecked UTF-8 parsing
 
-One of the constraints confirm that all temperature values are valid UTF-8,
+One of the constraints confirms that all input values are valid UTF-8,
 this allows us to bypass some of the checks when parsing because we know
 the data is guaranteed to be valid UTF-8.
 
@@ -399,7 +399,7 @@ outperform it for small keys such as integers as well as large keys such
 as long strings, though those algorithms will typically not protect
 against attacks such as HashDoS.
 
-tl;dr: The default algorithm is still fast, but it needs to do more work
+**TL;DR**: The default algorithm is still fast, but it needs to do more work
 for security reasons. For this challenge, security is not really a concern,
 so opting for other non-cryptographic algorithms is fine. I then opted for
 [FNV-1a](https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function#FNV-1a_hash),
@@ -479,8 +479,7 @@ In a hot loop like what we're doing, this can be a huge performance boost.
 
 In Rust, `memmap2` is a crate that provides APIs to use `mmap`.
 But since I'm not allowed to use any external dependencies, I had to
-manually copy a small part of the code from the crate (this is fine
-right? :D).
+manually re-implemented a small part of the crate (this is fine right? :D).
 
 ```rust
 unsafe fn mmap(f: File) -> Result<&'static [u8], io::Error> {
@@ -509,9 +508,8 @@ unsafe fn mmap(f: File) -> Result<&'static [u8], io::Error> {
 }
 ```
 
-But wait, `libc`? Isn't that a dependency? It is, but I think it's a
-necessary dependency if we want to use `mmap`. Besides, `std` uses `libc`
-internally.
+`libc` is an external crate, but it’s effectively unavoidable for
+low-level syscalls, and `std` itself depends on it internally.
 
 `libc::mmap()` is inherently unsafe, but that's not a problem here because the
 file is read-only, never mutated, and mapped for the entire duration of
@@ -737,13 +735,14 @@ avoids a full byte-by-byte comparison in the common case.
 - There are no allocations, no copying, and no UTF-8 validation - the key
 already lives in the mmap’d file and is simply referenced.
 
-What suprised me the most was how effective the partial key comparison is.
+What surprised me the most was how effective the partial key comparison is.
 Like any other programmer, I ~~copied and pas~~ tried to implement it myself.
 
 First let's introduce a table size and change how we store the entries
 and how we print the results:
 
 ```rust
+// 2^17 is ~130k entries, good enough for collision resolution
 const HASH_TABLE_SIZE: usize = 1 << 17;
 
 #[derive(Copy, Clone)]
@@ -873,7 +872,7 @@ fn insert_or_update(entries: &mut [Option<Entry>], station: &[u8], temperature: 
 }
 ```
 
-This snippet right here is a bit wizardry:
+This snippet right here is a bit of wizardry:
 
 ```rust
 for i in 0..station.len().min(8) {
@@ -893,8 +892,8 @@ packs the first 16 bytes of the name into two usize values:
 Each byte is shifted into position and OR’d into the final value,
 effectively creating a compact, fixed-size representation of the key
 prefix. Most comparisons are resolved by checking just these two integers.
-There is a better way to do this (using bit mask), which I’ll cover in
-the next optimization.
+There is a better way to do this (using bit mask), which I’ll cover
+later.
 
 With this change alone, the total runtime dropped to `~21s` with a total
 speedup of `~7.5x`. Not bad at all.
@@ -903,9 +902,410 @@ speedup of `~7.5x`. Not bad at all.
 
 Of course!
 
-Now how do we go about this?
+The idea is simple: we can split the mmap byte slice into multiple
+chunks (number of threads), and each thread will process its own chunk.
+Then at the end we can merge the results. The problem is that we need to 
+make sure that the chunks are correctly split so we don't miss any data.
+We can do this by first just splitting the slice into chunks, then make
+sure that each chunk up to the last one ends on a newline character. The
+last chunk can just be the rest of the slice.
 
-## Benchmarks
+```rust
+fn chunk_file(map: &[u8], n_workers: usize) -> Vec<(usize, usize)> {
+    let mut chunks = Vec::with_capacity(n_workers);
+    let file_len = map.len();
+    let base = file_len / n_workers;
+    let mut start: usize = 0;
+
+    for _ in 0..n_workers - 1 {
+        let mut end = start + base;
+        if end >= file_len {
+            break;
+        }
+
+        while end < file_len && map[end] != b'\n' {
+            end += 1;
+        }
+
+        chunks.push((start, end));
+        start = end + 1;
+    }
+
+    chunks.push((start, file_len));
+    chunks
+}
+```
+
+Then use it and push each chunk into a thread, and join them all at the
+end, accumulating the results:
+
+```rust
+let n_workers = thread::available_parallelism()
+    .map(|n| n.get())
+    .unwrap_or(1);
+let chunks = chunk_file(map, n_workers);
+let mut handles = Vec::with_capacity(n_workers);
+let mut results: Vec<Vec<Option<Entry>>> = vec![Vec::new(); n_workers];
+
+for (idx, (start, end)) in chunks.into_iter().enumerate() {
+    handles.push(thread::spawn(move || {
+        (idx, thread_process_chunk(&map[start..end], map))
+    }));
+}
+
+for handle in handles {
+    let (idx, entries) = handle.join().expect("should be able to join");
+    results[idx] = entries;
+}
+```
+
+The main logic can stay the same, just need to adjust how we handle the
+chunk. There is also a very change we also need to make: when saving the
+`name_offset`, we need to make sure that it is relative to the start of
+full the mmap slice, not the current chunk. The reason is that when
+merging the results, we need to be able to reconstruct the full name
+from the original mmap slice, not from a chunk-local view.
+
+This makes the merge phase much simpler and safer, since all intermediate
+results now speak the same “coordinate system” when referring to station names.
+
+```rust
+fn thread_process_chunk(chunk: &[u8], map: &[u8]) -> Vec<Option<Entry>> {
+    let mut entries: Vec<Option<Entry>> = vec![None; HASH_TABLE_SIZE];
+
+    let mut at = 0;
+    while at < chunk.len() {
+        let rest = &chunk[at..];
+        // ..
+    }
+}
+
+fn thread_insert_or_update(
+    entries: &mut [Option<Entry>],
+    station: &[u8],
+    temperature: i32,
+    map: &[u8], // full mmap for offset calculations
+) {
+    // ...
+    loop {
+        match &mut entries[idx] {
+            // empty slot -> insert
+            None => {
+                entries[idx] = Some(Entry {
+                    w0,
+                    w1,
+                    min: temperature,
+                    max: temperature,
+                    sum: temperature,
+                    count: 1,
+                    name_len: station.len(),
+                    // need to make sure that the offset is relative to the full mmap
+                    name_offset: unsafe { station.as_ptr().offset_from(map.as_ptr()) } as usize,
+                });
+                return;
+            }
+            Some(e) => {
+                // ...
+            }
+        }
+    }
+}
+```
+
+Then we merge the results:
+
+```rust
+let mut final_map: BTreeMap<&[u8], Entry> = BTreeMap::new();
+for thread_entries_result in &results {
+    for &entry in thread_entries_result.iter().flatten() {
+        // here we reconstruct the full name from the original mmap slice
+        let name_bytes = &map[entry.name_offset..entry.name_offset + entry.name_len];
+
+        if let Some(existing) = final_map.get_mut(name_bytes) {
+            existing.min = existing.min.min(entry.min);
+            existing.max = existing.max.max(entry.max);
+            existing.sum += entry.sum;
+            existing.count += entry.count;
+        } else {
+            final_map.insert(name_bytes, entry);
+        }
+    }
+}
+```
+
+Doing multi-threading optimization, utilizing all 12 available cores on
+my machine, the total runtime dropped to `~3.5s` with a total speedup of `~45.54x`.
+Massive win!
+
+## Optimization 12: inline station name + better temperature parse + faster first 16 bytes load for name
+
+This already ran in about 3.5 seconds with multi-threading, which was a
+huge win, and honestly I was ready to stop there. But curiosity got the
+better of me, I wanted to see how much further I could push it.
+
+While digging around, I came across a pretty neat trick used by jonhoo
+in his [brrr](https://github.com/jonhoo/brrr) solution: inline short
+station names directly into the entry struct.
+
+At this point in my code, every time I needed to access a station name, I had to:
+- Follow a pointer (or offset) into the mmap slice.
+- Slice out the name using offset + length
+
+That indirection isn't free. Pointer chasing is generally slower than
+accessing data that’s already nearby in memory, especially when you’re
+doing it millions of times in a tight loop.
+
+His optimization is simple but effective:
+- For names that are less than 16 bytes long, inline the name directly.
+- Only fall back to the mmap slice for longer names.
+
+Let's try it:
+
+```rust
+const INLINE_NAME_CAP: usize = 16;
+
+#[derive(Copy, Clone)]
+struct Entry {
+    w0: usize,
+    w1: usize,
+    min: i16,
+    max: i16,
+    sum: i32,
+    count: u32,
+
+    name_offset: usize, // offset relative to full mmap
+    name_len: u8,
+    // introduce an inline_name field
+    inline_name: [u8; INLINE_NAME_CAP],
+}
+```
+
+With some new methods:
+
+```rust
+impl Entry {
+    fn new(w0: usize, w1: usize, temperature: i16, name_len: u8) -> Self {
+        Self {
+            w0,
+            w1,
+            min: temperature,
+            max: temperature,
+            sum: temperature as i32,
+            count: 1,
+            name_len,
+            inline_name: [0; INLINE_NAME_CAP],
+            name_offset: 0,
+        }
+    }
+
+    #[inline(always)]
+    fn update(&mut self, temperature: i16) {
+        self.min = self.min.min(temperature);
+        self.max = self.max.max(temperature);
+        self.sum += temperature as i32;
+        self.count += 1;
+    }
+
+    #[inline(always)]
+    fn write_inline_name(&mut self, station: &[u8], map: &[u8]) {
+        // we can just read the inline name if it's less than 16 bytes
+        if station.len() < INLINE_NAME_CAP {
+            self.inline_name[..station.len()].copy_from_slice(station);
+        } else {
+            // this is to hint the compiler that this case is "cold", or
+            // unlikely to be executed so it can optimize it away
+            std::hint::cold_path();
+            self.name_offset = unsafe { station.as_ptr().offset_from(map.as_ptr()) as usize };
+        };
+    }
+
+    #[inline(always)]
+    fn entry_name_eq(&self, station: &[u8], map: &[u8]) -> bool {
+        if station.len() < INLINE_NAME_CAP {
+            &self.inline_name[..station.len()] == station
+        } else {
+            std::hint::cold_path();
+            let existing = unsafe {
+                map.get_unchecked(
+                    self.name_offset as usize..self.name_offset as usize + station.len(),
+                )
+            };
+            existing == station
+        }
+    }
+}
+```
+
+Then the main logic changed a bit:
+
+```rust
+fn thread_insert_or_update(
+    entries: &mut [Option<Entry>],
+    station: &[u8],
+    temperature: i32,
+    map: &[u8], // full mmap for offset calculations
+) {
+    // ...
+    loop {
+        match &mut entries[idx] {
+            // empty slot -> insert
+            None => {
+                let mut e = Entry::new(w0, w1, temperature, len as u8);
+                e.write_inline_name(station, map);
+                entries[idx] = Some(e);
+
+                return;
+            }
+            Some(e) => {
+                // check first 16 bytes, fast reject if collision
+                if e.name_len as usize != len || e.w0 != w0 || e.w1 != w1 {
+                    idx = (idx + STEP) & mask;
+                    continue;
+                }
+
+                // check for name match
+                if !e.entry_name_eq(station, map) {
+                    idx = (idx + STEP) & mask;
+                    continue;
+                }
+
+                // exist, update entry
+                e.update(temperature);
+                return;
+            }
+        }
+    }
+}
+```
+
+When merging the results:
+
+```rust
+let mut final_map: BTreeMap<&[u8], Entry> = BTreeMap::new();
+for thread_entries_result in &results {
+    for entry in thread_entries_result {
+        let len = entry.name_len as usize;
+        // we can just read the inline name if it's less than 16 bytes
+        let name_bytes = if len < INLINE_NAME_CAP {
+            &entry.inline_name[..len]
+        } else {
+            std::hint::cold_path();
+            unsafe {
+                map.get_unchecked(entry.name_offset as usize..entry.name_offset as usize + len)
+            }
+        };
+
+        if let Some(existing) = final_map.get_mut(name_bytes) {
+            existing.min = existing.min.min(entry.min);
+            existing.max = existing.max.max(entry.max);
+            existing.sum += entry.sum;
+            existing.count += entry.count;
+        } else {
+            final_map.insert(name_bytes, *entry);
+        }
+    }
+}
+```
+
+### "Branchlessly" temperature parsing
+
+This is also a good chance to refactor some code and make it more
+efficient. First the temperature parsing, make it a little more
+"branchlessly":
+
+```rust
+fn parse_temperature(t: &[u8]) -> i16 {
+    let mut i = 0;
+    let neg = (t[0] == b'-') as i16;
+    i += neg as usize;
+
+    // first digit
+    let d0 = (t[i] - b'0') as i16;
+
+    // check if there are two digits before the dot: DD.D vs D.D
+    let two_digits = (t[i + 1] != b'.') as i16;
+
+    // second digit (= first digit if two_digits == 0)
+    let d1 = (t[i + two_digits as usize] - b'0') as i16;
+
+    let frac = (t[i + two_digits as usize + 2] - b'0') as i16;
+    let int_part = d0 * (1 + 9 * two_digits) + d1 * two_digits;
+    let val = int_part * 10 + frac;
+    val - (neg * val * 2)
+}
+```
+
+### Bit masking for first 16 bytes name packing
+
+Before I mentioned that I was going to improve how I packed the first 16
+bytes of the name into two usize values with bit masking. It's important
+to note that the mask assumes little endian (since I'm running on a
+x86_64 machine), so it is required to place the bytes in the right order.
+
+```rust
+const MASK_TABLE: [u64; 9] = [
+    0x0000000000000000,
+    0x00000000000000FF,
+    0x000000000000FFFF,
+    0x0000000000FFFFFF,
+    0x00000000FFFFFFFF,
+    0x000000FFFFFFFFFF,
+    0x0000FFFFFFFFFFFF,
+    0x00FFFFFFFFFFFFFF,
+    0xFFFFFFFFFFFFFFFF,
+];
+
+#[inline(always)]
+unsafe fn load_u64_masked(ptr: *const u8, len: usize) -> u64 {
+    unsafe {
+        let v = core::ptr::read_unaligned(ptr as *const u64);
+        // use the length to index into a table of masks
+        // branchless and avoids bit shift
+        // e.g: If len is 3, we still read 8 bytes, 3 bytes are good data, the remanining 5 is
+        // garbage. We need to mask it with the masks table
+        // so len 3 gives us 0x0000000000FFFFFF -> keeps the first 3 bytes
+        v & *MASK_TABLE.get_unchecked(len.min(8))
+    }
+}
+
+// and use it like so
+let w0 = unsafe { load_u64_masked(bytes, len.min(8)) } as usize;
+let w1 = unsafe { load_u64_masked(bytes.add(8), len.saturating_sub(8).min(8)) } as usize;
+```
+
+All the change above brought the total runtime down to `~2.35s`, with a
+total speedup of `~67.83x`. Honestly, that number surprised me because
+I wasn't expecting it to be that much faster.
+
+And with that… I was finally satisfied.
+
+## Reflective + takeaways
+
+At this point, I decided to stop. I was happy to have met all the goals
+I set for myself. This exercise wasn’t really about shaving off the last
+few milliseconds, it was an opportunity for me to learn more about Rust
+and low level programming, and I'm glad I was able to do that.
+
+Will this all be useful to me in the future? Almost certainly, though
+maybe not in the ways I expect. Most production systems don’t need this
+level of optimization, but knowing how and where performance is won makes
+it much easier to reason about slow paths and choose the right
+ones.
+
+I’ll be carrying these lessons forward into future projects, and if
+nothing else, this was a great reminder of why digging a bit deeper into
+systems programming is so rewarding.
+
+## My thanks
+
+Thanks to [jonhoo](https://github.com/jonhoo) and [thomaswue](https://github.com/thomaswue)
+for the inspiration and help with the optimizations.
+
+[jonhoo](https://github.com/jonhoo) is an exceptional Rust programmer
+and teacher, and I highly recommend checking out his [channel on
+Youtube](https://www.youtube.com/@jonhoo).
+
+## Appendix: Benchmarks
 
 - Each version was run **5 times**.
 - Calculate the **median** and **mean** runtime.
@@ -924,5 +1324,5 @@ Now how do we go about this?
 | v9      | Unroll temperature parsing                      | 23.37          | 23.43 ± 0.15    | 6.82x           |
 | v10     | Better hashing, use Vec<> and manual collision detection instead of HashMap ([ref](https://github.com/gunnarmorling/1brc/blob/main/src/main/java/dev/morling/onebrc/CalculateAverage_thomaswue.java#L239)) | 21.06 | 21.05 ± 0.10 | 7.57x |
 | v11     | Multi-threading                                 | 3.50           | 3.50 ± 0.02     | 45.54x          |
-| v12     | Multi-threading + inline station name + better temperature parse + faster first 16 bytes load for name (final ?) | 2.35 | 2.35 ± 0.05 | 67.83x |
+| v12     | Multi-threading + inline station name + better temperature parse + faster first 16 bytes load for name | 2.35 | 2.35 ± 0.05 | 67.83x |
 
