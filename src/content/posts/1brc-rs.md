@@ -1277,7 +1277,7 @@ All the change above brought the total runtime down to `~2.35s`, with a
 total speedup of `~67.83x`. Honestly, that number surprised me because
 I wasn't expecting it to be that much faster.
 
-And with that… I was finally satisfied.
+And with that...I was finally satisfied.
 
 ## Reflective + takeaways
 
