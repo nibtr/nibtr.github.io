@@ -7,8 +7,8 @@ draft = false
 ## Hi, I'm Hieu Nguyen.
 
 I'm a full-stack developer currently working for a small
-[startup](https://www.devsamurai.com/en/). In my free time, I like to do
-recreational and systems programming, for fun.
+startup. In my free time, I like to do recreational and systems
+programming, for fun.
 
 ## contact 
 
