@@ -1292,8 +1292,8 @@ level of optimization, but knowing how and where performance is won makes
 it much easier to reason about slow paths and choose the right
 ones.
 
-I’m definitely going to take these lessons into future projects. At the
-very least, it was a good reminder of why spending a bit more time
+I’m definitely going to try and take these lessons into future
+challenges. At the very least, it was a good reminder of why spending a bit more time
 digging into low-level programming can be really worth it.
 
 ## Acknowledgement
