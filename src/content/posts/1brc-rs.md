@@ -962,7 +962,7 @@ for handle in handles {
 The main logic can stay the same, just need to adjust how we handle the
 chunk. There is also a important very change we also need to make: when saving the
 `name_offset`, we need to make sure that it is relative to the start of
-full the mmap slice, not the current chunk. The reason is that when
+the full mmap slice, not the current chunk. The reason is that when
 merging the results, we need to be able to reconstruct the full name
 from the original mmap slice, not from a chunk-local view.
 
