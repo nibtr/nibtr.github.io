@@ -8,7 +8,7 @@ description = 'A simple pathfinding visualizer for common algorithms'
 +++
 
 A simple visualizer for commonly used pathfinding algorithms for educational purposes. Most of the algorithms details
-can be found in the their respective Wikipedia pages.
+can be found in their respective Wikipedia pages.
 
 ![image](https://github.com/user-attachments/assets/0dbca496-46e2-421c-a179-0725bfb56bc6)
 
