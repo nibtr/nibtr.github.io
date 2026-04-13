@@ -11,15 +11,12 @@ if [ -z "$TITLE" ]; then
   exit 1
 fi
 
-# Generate filename (slug)
 OUTPUT_DIR=./src/content/posts
 SLUG=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g' | sed -E 's/^-|-$//g')
-
-# Date formats
 DATE=$(date +"%Y-%m-%dT%H:%M:%S%z")
 FILENAME="${OUTPUT_DIR}/${SLUG}.md"
 
-# Create file
+# create file
 cat <<EOF > "$FILENAME"
 +++
 title = "$TITLE"
