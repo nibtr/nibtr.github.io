@@ -1,5 +1,6 @@
 +++
   title = "println!(\"Hello, friend!\");"
+  description = "My first blog post."
   date = 2023-05-16T20:23:18+07:00
   draft = false
 +++

@@ -1,35 +1,52 @@
 ---
-import '@/styles/global.css'
-// import '@/styles/typography.css'
-
-// import Footer from '@/components/Footer.astro'
-// import Head from '@/components/Head.astro'
-import Header from '@/components/Header.astro'
-import { SITE } from '@consts';
-import Head from '@components/Head.astro';
-import PageFind from "@components/PageFind.astro";
+import "../styles/global.css";
 
 interface Props {
-  class?: string
-  title: string,
-  description?: string
+  title?: string;
+  description?: string;
 }
 
-const { title, description } = Astro.props
+const SITE_NAME = "Hieu Nguyen";
+const DEFAULT_DESCRIPTION =
+  "Personal website of Hieu Nguyen, a backend developer.";
+
+const { title } = Astro.props;
+const description = Astro.props.description || DEFAULT_DESCRIPTION;
+const pageTitle = title ? `${title} | ${SITE_NAME}` : SITE_NAME;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 ---
 
 <!doctype html>
-<html
-  class="bg-background text-foreground"
-  lang={SITE.locale}
->
-  <Head title={title} description={description} />
-  <body class="flex h-fit min-h-screen flex-col gap-y-6 font-sans">
-    <Header />
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL} />
+    <link rel="icon" href="data:," />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title={SITE_NAME}
+      href="/rss.xml"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL} />
+  </head>
+  <body>
+    <header>
+      <nav>
+        <a href="/">home</a>
+        <a href="/posts/">posts</a>
+        <a href="/projects/">projects</a>
+        <a href="/rss.xml">rss</a>
+      </nav>
+    </header>
     <main>
       <slot />
     </main>
-    <!-- <Footer /> -->
-    <PageFind />
   </body>
 </html>

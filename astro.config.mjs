@@ -1,14 +1,11 @@
-// @ts-check
-import { defineConfig } from "astro/config";
-import sitemap from "@astrojs/sitemap";
-import tailwindcss from "@tailwindcss/vite";
-import pagefind from "astro-pagefind";
+import { defineConfig, passthroughImageService } from "astro/config";
 
-// https://astro.build/config
 export default defineConfig({
-  site: "https://hx16.github.io",
-  integrations: [sitemap(), pagefind()],
-  vite: {
-    plugins: [tailwindcss()],
+  site: "https://nibtr.github.io",
+  image: { service: passthroughImageService() },
+  markdown: {
+    shikiConfig: {
+      themes: { light: "github-light", dark: "github-dark" },
+    },
   },
 });

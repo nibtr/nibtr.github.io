@@ -1,5 +1,6 @@
 +++
 title = "First day probation for new job"
+description = "My first day on probation at a new job."
 date = "2026-04-13T20:03:14+0700"
 draft = false
 +++

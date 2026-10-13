@@ -1,5 +1,6 @@
 +++
 title = '1 Billion Row Challenge in Rust: How I went from 160s to 2.4s'
+description = "How I took the 1 Billion Row Challenge in Rust from 160s down to 2.4s."
 date = 2026-01-20T20:13:01+07:00
 draft = false
 +++

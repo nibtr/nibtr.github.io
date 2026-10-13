@@ -1,13 +1,18 @@
 # nibtr.github.io
 
-It's my personal website, built with [Astro](https://astro.build).
+My personal website, built with [Astro](https://astro.build). No client-side JavaScript, one CSS file.
 
-The theme is a mix of the following:
+## Usage
 
-- https://github.com/jktrn/enscribe.dev
-- https://github.com/jktrn/astro-erudite
-- https://github.com/trevortylerlee/astro-micro
-- https://github.com/the3ash/astro-chiri
+```sh
+npm ci
+npm run dev        # local dev server
+npm run build      # static output in dist/
+./new_post.sh "Post title"   # new draft in src/content/posts
+```
+
+Pushing to `main` deploys to GitHub Pages (`.github/workflows/astro.yml`).
+Dependabot opens a grouped update PR monthly; the PR build catches breakage.
 
 ## License
 

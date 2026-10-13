@@ -1,5 +1,6 @@
 +++
 title = 'Error handling and logging in Express'
+description = "Tips for centralized error handling and logging in Express."
 date = 2025-07-24T10:09:21+07:00
 draft = false
 +++

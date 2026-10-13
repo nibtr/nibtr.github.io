@@ -20,6 +20,7 @@ FILENAME="${OUTPUT_DIR}/${SLUG}.md"
 cat <<EOF > "$FILENAME"
 +++
 title = "$TITLE"
+description = ""
 date = "$DATE"
 draft = true
 +++

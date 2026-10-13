@@ -1,5 +1,6 @@
 +++
   title = "Things I find beautiful"
+  description = "A list of things I find beautiful."
   date = 2023-06-10T21:15:18+07:00
   draft = false
 +++

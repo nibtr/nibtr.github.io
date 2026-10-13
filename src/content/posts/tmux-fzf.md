@@ -1,5 +1,6 @@
 +++
 title = 'tmux + fzf'
+description = "A short intro to tmux and fzf."
 date = 2025-03-28T10:44:01+07:00
 draft = false 
 +++

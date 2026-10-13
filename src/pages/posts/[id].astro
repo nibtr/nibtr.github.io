@@ -1,0 +1,45 @@
+---
+import { render } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
+import { formatDate } from "../../lib/date";
+import { getPosts } from "../../lib/posts";
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  return posts.map((post) => ({ params: { id: post.id }, props: { post } }));
+}
+
+// Skip the TOC for short posts.
+const MIN_TOC_HEADINGS = 5;
+const MAX_TOC_DEPTH = 3;
+
+const { post } = Astro.props;
+const { Content, headings } = await render(post);
+const toc = headings.filter((heading) => heading.depth <= MAX_TOC_DEPTH);
+---
+
+<Layout title={post.data.title} description={post.data.description}>
+  <article>
+    <h1>{post.data.title}</h1>
+    <p>
+      <time datetime={post.data.date.toISOString()}>
+        {formatDate(post.data.date)}
+      </time>
+    </p>
+    {
+      toc.length >= MIN_TOC_HEADINGS && (
+        <details>
+          <summary>Contents</summary>
+          <ul class="toc">
+            {toc.map((heading) => (
+              <li class={`depth-${heading.depth}`}>
+                <a href={`#${heading.slug}`}>{heading.text}</a>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )
+    }
+    <Content />
+  </article>
+</Layout>

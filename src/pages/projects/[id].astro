@@ -1,0 +1,30 @@
+---
+import { getCollection, render } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
+import { formatDate } from "../../lib/date";
+
+export async function getStaticPaths() {
+  const projects = await getCollection("projects");
+  return projects.map((project) => ({
+    params: { id: project.id },
+    props: { project },
+  }));
+}
+
+const { project } = Astro.props;
+const { Content } = await render(project);
+---
+
+<Layout title={project.data.title} description={project.data.description}>
+  <article>
+    <h1>{project.data.title}</h1>
+    <p class="row">
+      <time datetime={project.data.publishedDate.toISOString()}>
+        {formatDate(project.data.publishedDate)}
+      </time>
+      <a href={project.data.repo}>repo</a>
+      {project.data.demo && <a href={project.data.demo}>demo</a>}
+    </p>
+    <Content />
+  </article>
+</Layout>

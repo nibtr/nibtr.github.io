@@ -1,6 +1,6 @@
 +++
 title = 'rusty-snake'
-publishedDate = 2025-02-31T10:09:21+07:00
+publishedDate = 2025-02-28T10:09:21+07:00
 draft = false
 repo = 'https://github.com/nibtr/rusty-snake'
 description = 'A simple snake game written in Rust'
